@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laro Store | متجرك الرقمي الموثوق</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Vue.js 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                            950: '#0b1329',
+                        },
+                        darkBg: '#070b19',
+                        cardBg: 'rgba(15, 23, 42, 0.75)',
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style type="text/css">
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #070b19;
+            color: #f8fafc;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.25);
+            transform: translateY(-3px);
+        }
+        .blue-gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .glow-effect {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+    <div id="app" class="flex-grow flex flex-col">
+        <!-- Header / Navbar -->
+        <header class="sticky top-0 z-50 glass-panel border-b border-brand-500/20 px-4 lg:px-8 py-4">
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" @click="currentTab = 'home'">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-700 to-brand-500 flex items-center justify-center glow-effect">
+                        <i class="fa-solid fa-gamepad text-white text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-bold tracking-wide text-white">Laro <span class="blue-gradient-text">Store</span></span>
+                </div>
+
+                <!-- Nav Links -->
+                <nav class="hidden md:flex items-center gap-6 font-semibold text-slate-300">
+                    <button @click="currentTab = 'home'" :class="{'text-brand-400': currentTab === 'home'}" class="hover:text-brand-400 transition">الرئيسية</button>
+                    <button @click="currentTab = 'products'" :class="{'text-brand-400': currentTab === 'products'}" class="hover:text-brand-400 transition">المنتجات</button>
+                    <button @click="scrollToSection('categories')" class="hover:text-brand-400 transition">الأقسام</button>
+                    <button @click="scrollToSection('offers')" class="hover:text-brand-400 transition">العروض</button>
+                    <button @click="scrollToSection('faq')" class="hover:text-brand-400 transition">الأسئلة الشائعة</button>
+                </nav>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-4">
+                    <!-- Search Input -->
+                    <div class="relative hidden sm:block">
+                        <input type="text" v-model="searchQuery" placeholder="ابحث عن منتج..." class="bg-slate-900/80 border border-brand-500/30 rounded-xl px-4 py-1.5 text-sm w-48 focus:w-60 focus:outline-none focus:border-brand-500 transition-all text-slate-200 placeholder-slate-500">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                    </div>
+
+                    <!-- Cart Button -->
+                    <button @click="showCart = true" class="relative p-2.5 bg-brand-950 border border-brand-500/30 rounded-xl hover:border-brand-500 transition text-brand-400">
+                        <i class="fa-solid fa-cart-shopping text-lg"></i>
+                        <span v-if="cartCount > 0" class="absolute -top-2 -right-2 bg-brand-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                            {{ cartCount }}
+                        </span>
+                    </button>
+
+                    <!-- Discord Button -->
+                    <a :href="storeConfig.socials.discord" target="_blank" class="hidden lg:flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white font-semibold px-4 py-2 rounded-xl text-sm transition glow-effect">
+                        <i class="fa-brands fa-discord"></i>
+                        <span>الدعم الفني</span>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content View -->
+        <main class="flex-grow">
+            <!-- HOMEPAGE -->
+            <div v-if="currentTab === 'home'">
+                <!-- Hero Section -->
+                <section class="relative py-20 px-4 overflow-hidden border-b border-brand-500/10">
+                    <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-brand-600/20 rounded-full blur-3xl pointer-events-none"></div>
+                    
+                    <div class="max-w-4xl mx-auto text-center relative z-10 space-y-6">
+                        <span class="bg-brand-500/10 border border-brand-500/30 text-brand-400 px-4 py-1.5 rounded-full text-sm font-semibold inline-block">
+                            <i class="fa-solid fa-bolt text-xs ml-1"></i> التسليم فوري وآمن 100%
+                        </span>
+                        
+                        <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight">
+                            متجر <span class="blue-gradient-text">لارو</span> الرقمي
+                        </h1>
+                        
+                        <p class="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
+                            وجهتك الأولى للحصول على أفضل الاشتراكات الرقمية، خدمات الديسكورد، السورسات، والحلول المخصصة بأسعار تنافسية.
+                        </p>
+
+                        <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
+                            <button @click="currentTab = 'products'" class="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white px-8 py-3.5 rounded-xl font-bold text-lg transition glow-effect">
+                                تصفح المنتجات
+                            </button>
+                            <button @click="scrollToSection('categories')" class="glass-card hover:bg-brand-900/40 text-slate-200 px-8 py-3.5 rounded-xl font-bold text-lg transition">
+                                استكشف الأقسام
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Categories Section -->
+                <section id="categories" class="max-w-7xl mx-auto px-4 py-16">
+                    <h2 class="text-2xl font-bold text-slate-100 mb-8 border-r-4 border-brand-500 pr-3">أقسام المتجر</h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        <div v-for="cat in categories" :key="cat.id" 
+                             @click="filterByCategory(cat.id)"
+                             class="glass-card p-5 rounded-2xl text-center cursor-pointer flex flex-col items-center justify-center space-y-3">
+                            <div class="w-12 h-12 rounded-xl bg-brand-900/50 border border-brand-500/30 flex items-center justify-center text-brand-400 text-xl">
+                                <i :class="cat.icon"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-200">{{ cat.name }}</h3>
+                            <span class="text-xs text-slate-400">{{ getCategoryCount(cat.id) }} منتج</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Featured Offers -->
+                <section id="offers" class="max-w-7xl mx-auto px-4 py-12">
+                    <div class="flex items-center justify-between mb-8">
+                        <h2 class="text-2xl font-bold text-slate-100 border-r-4 border-brand-500 pr-3">العروض الخاصة</h2>
+                        <button @click="currentTab = 'products'" class="text-brand-400 text-sm font-semibold hover:underline">عرض الكل ←</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <div v-for="product in discountedProducts" :key="product.id" class="glass-card rounded-2xl overflow-hidden flex flex-col">
+                            <!-- Image Placeholder -->
+                            <div class="h-44 bg-slate-900/80 border-b border-brand-500/10 flex flex-col items-center justify-center relative p-4">
+                                <i class="fa-solid fa-box text-3xl text-brand-500/40 mb-2"></i>
+                                <span class="text-xs text-slate-500 dir-ltr">{{ product.image }}</span>
+                                <span class="absolute top-3 right-3 bg-brand-600 text-white font-bold text-xs px-2.5 py-1 rounded-lg">
+                                    خصم {{ calculateDiscount(product.price, product.oldPrice) }}%
+                                </span>
+                            </div>
+
+                            <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+                                <div>
+                                    <h3 class="font-bold text-slate-100 text-lg mb-1">{{ product.name }}</h3>
+                                    <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed">{{ product.description }}</p>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+                                    <div>
+                                        <span class="text-slate-500 text-xs line-through block">{{ product.oldPrice }} {{ storeConfig.currency }}</span>
+                                        <span class="text-brand-400 font-bold text-lg">{{ product.price }} {{ storeConfig.currency }}</span>
+                                    </div>
+                                    <button @click="addToCart(product)" class="bg-brand-600/20 hover:bg-brand-600 border border-brand-500/40 hover:border-transparent text-brand-300 hover:text-white p-2.5 rounded-xl transition">
+                                        <i class="fa-solid fa-cart-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- FAQ Section -->
+                <section id="faq" class="max-w-4xl mx-auto px-4 py-16">
+                    <h2 class="text-2xl font-bold text-slate-100 mb-8 text-center">الأسئلة الشائعة</h2>
+                    <div class="space-y-4">
+                        <div v-for="(item, idx) in faqs" :key="idx" class="glass-card rounded-2xl p-5 cursor-pointer" @click="item.open = !item.open">
+                            <div class="flex items-center justify-between font-bold text-slate-200">
+                                <span>{{ item.q }}</span>
+                                <i :class="item.open ? 'fa-chevron-up' : 'fa-chevron-down'" class="text-brand-400 text-sm"></i>
+                            </div>
+                            <p v-if="item.open" class="text-slate-400 text-sm mt-3 pt-3 border-t border-slate-800 leading-relaxed">
+                                {{ item.a }}
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- PRODUCTS PAGE -->
+            <div v-if="currentTab === 'products'" class="max-w-7xl mx-auto px-4 py-12">
+                <div class="flex flex-col md:flex-row gap-8">
+                    <!-- Sidebar Filters -->
+                    <aside class="w-full md:w-64 space-y-6">
+                        <div class="glass-card p-5 rounded-2xl space-y-4">
+                            <h3 class="font-bold text-slate-200 border-b border-slate-800 pb-3">الأقسام</h3>
+                            <div class="space-y-2 text-sm">
+                                <button @click="selectedCategory = 'all'" 
+                                        :class="selectedCategory === 'all' ? 'text-brand-400 font-bold' : 'text-slate-400'"
+                                        class="block w-full text-right hover:text-brand-400 py-1">
+                                    جميع الأقسام
+                                </button>
+                                <button v-for="cat in categories" :key="cat.id"
+                                        @click="selectedCategory = cat.id"
+                                        :class="selectedCategory === cat.id ? 'text-brand-400 font-bold' : 'text-slate-400'"
+                                        class="block w-full text-right hover:text-brand-400 py-1">
+                                    {{ cat.name }}
+                                </button>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <!-- Product Grid -->
+                    <div class="flex-grow space-y-6">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-2xl font-bold text-slate-100">قائمة المنتجات</h2>
+                            <span class="text-slate-400 text-sm">{{ filteredProducts.length }} منتج</span>
+                        </div>
+
+                        <div v-if="filteredProducts.length === 0" class="glass-card p-12 text-center rounded-2xl space-y-3">
+                            <i class="fa-solid fa-box-open text-4xl text-slate-600"></i>
+                            <p class="text-slate-400">لا توجد منتجات مطابقة لعملية البحث.</p>
+                        </div>
+
+                        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div v-for="product in filteredProducts" :key="product.id" class="glass-card rounded-2xl overflow-hidden flex flex-col">
+                                <div class="h-44 bg-slate-900/80 border-b border-brand-500/10 flex flex-col items-center justify-center relative p-4">
+                                    <i class="fa-solid fa-box text-3xl text-brand-500/40 mb-2"></i>
+                                    <span class="text-xs text-slate-500 dir-ltr">{{ product.image }}</span>
+                                </div>
+
+                                <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+                                    <div>
+                                        <h3 class="font-bold text-slate-100 text-lg mb-1">{{ product.name }}</h3>
+                                        <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed">{{ product.description }}</p>
+                                    </div>
+
+                                    <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+                                        <span class="text-brand-400 font-bold text-lg">{{ product.price }} {{ storeConfig.currency }}</span>
+                                        <button @click="addToCart(product)" class="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
+                                            إضافة للسلة
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- CART & CHECKOUT MODAL -->
+        <div v-if="showCart" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-end">
+            <div class="w-full max-w-md bg-darkBg border-r border-brand-500/20 h-full p-6 flex flex-col justify-between overflow-y-auto">
+                <div>
+                    <!-- Modal Header -->
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-cart-shopping text-brand-400"></i> سلة الشراء
+                        </h2>
+                        <button @click="showCart = false" class="text-slate-400 hover:text-white">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Cart Items -->
+                    <div v-if="cart.length === 0" class="py-16 text-center space-y-3">
+                        <i class="fa-solid fa-basket-shopping text-4xl text-slate-600"></i>
+                        <p class="text-slate-400">السلة فارغة حالياً</p>
+                    </div>
+
+                    <div v-else class="py-4 space-y-4">
+                        <div v-for="item in cart" :key="item.id" class="glass-card p-4 rounded-xl flex items-center justify-between">
+                            <div>
+                                <h4 class="font-bold text-slate-200 text-sm">{{ item.name }}</h4>
+                                <span class="text-brand-400 font-semibold text-xs">{{ item.price }} {{ storeConfig.currency }}</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center border border-slate-700 rounded-lg overflow-hidden">
+                                    <button @click="updateQty(item.id, -1)" class="px-2 py-1 text-slate-400 hover:bg-slate-800">-</button>
+                                    <span class="px-2 text-sm">{{ item.qty }}</span>
+                                    <button @click="updateQty(item.id, 1)" class="px-2 py-1 text-slate-400 hover:bg-slate-800">+</button>
+                                </div>
+                                <button @click="removeFromCart(item.id)" class="text-red-400 hover:text-red-300 text-sm">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cart Footer / Checkout Form -->
+                <div v-if="cart.length > 0" class="pt-4 border-t border-slate-800 space-y-4">
+                    <div class="flex justify-between items-center font-bold text-lg">
+                        <span class="text-slate-300">الإجمالي:</span>
+                        <span class="text-brand-400">{{ cartTotal }} {{ storeConfig.currency }}</span>
+                    </div>
+
+                    <!-- Payment QR Placeholder -->
+                    <div class="glass-card p-4 rounded-xl text-center space-y-2">
+                        <p class="text-xs text-slate-400">امسح رمز QR للدفع عبر محفظتك</p>
+                        <div class="w-32 h-32 mx-auto bg-slate-900 border border-brand-500/30 rounded-lg flex flex-col items-center justify-center p-2">
+                            <i class="fa-solid fa-qrcode text-4xl text-brand-400"></i>
+                            <span class="text-[10px] text-slate-500 mt-2 dir-ltr">{{ paymentConfig.qrImage }}</span>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-300 dir-ltr">{{ paymentConfig.paymentIdentifier }}</p>
+                    </div>
+
+                    <!-- Checkout Form Inputs -->
+                    <div class="space-y-3">
+                        <input type="text" v-model="orderForm.discordUser" placeholder="اسم حسابك في ديسكورد (Username)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+                        <input type="text" v-model="orderForm.paymentRef" placeholder="رقم المرجع / رقم التحويل" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <button @click="completeCheckout" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 rounded-xl transition glow-effect">
+                        تأكيد وإرسال الطلب
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="glass-panel border-t border-brand-500/20 py-10 px-4 mt-16">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="space-y-2 text-center md:text-right">
+                    <span class="text-xl font-bold text-white">Laro <span class="blue-gradient-text">Store</span></span>
+                    <p class="text-xs text-slate-400">متجرك الرقمي الموثوق لخدمات واشتراكات ديسكورد.</p>
+                </div>
+
+                <div class="flex items-center gap-6 text-xl text-slate-400">
+                    <a :href="storeConfig.socials.discord" target="_blank" class="hover:text-brand-400"><i class="fa-brands fa-discord"></i></a>
+                    <a :href="storeConfig.socials.telegram" target="_blank" class="hover:text-brand-400"><i class="fa-brands fa-telegram"></i></a>
+                    <a :href="storeConfig.socials.whatsapp" target="_blank" class="hover:text-brand-400"><i class="fa-brands fa-whatsapp"></i></a>
+                </div>
+
+                <p class="text-xs text-slate-500">جميع الحقوق محفوظة © 2026 Laro Store</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Vue App Script -->
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentTab: 'home',
+                    showCart: false,
+                    searchQuery: '',
+                    selectedCategory: 'all',
+                    
+                    storeConfig: {
+                        name: "Laro Store",
+                        currency: "ر.س",
+                        socials: {
+                            discord: "https://discord.gg/example",
+                            telegram: "https://t.me/example",
+                            whatsapp: "https://wa.me/example"
+                        }
+                    },
+
+                    paymentConfig: {
+                        qrImage: "/assets/payment/qr.png",
+                        paymentIdentifier: "STC-PAY: 0500000000"
+                    },
+
+                    orderForm: {
+                        discordUser: '',
+                        paymentRef: ''
+                    },
+
+                    cart: [],
+
+                    categories: [
+                        { id: 'nitro', name: 'نيترو', icon: 'fa-solid fa-bolt' },
+                        { id: 'boost', name: 'بوست', icon: 'fa-solid fa-rocket' },
+                        { id: 'accounts', name: 'حسابات إنشاء', icon: 'fa-solid fa-user-plus' },
+                        { id: 'netflix', name: 'حسابات نتفلكس', icon: 'fa-solid fa-tv' },
+                        { id: 'shahid', name: 'حسابات شاهد', icon: 'fa-solid fa-play' },
+                        { id: 'snap', name: 'سناب بلس', icon: 'fa-ghost' },
+                        { id: 'crunchyroll', name: 'كرانشي رول', icon: 'fa-solid fa-film' },
+                        { id: 'effects', name: 'أفكتات', icon: 'fa-solid fa-wand-magic-sparkles' },
+                        { id: 'sources', name: 'سورسات', icon: 'fa-solid fa-code' },
+                        { id: 'suppliers', name: 'موردين', icon: 'fa-solid fa-truck-ramp-box' },
+                        { id: 'tweak', name: 'تويك', icon: 'fa-solid fa-sliders' },
+                        { id: 'exchange', name: 'صرف', icon: 'fa-solid fa-right-left' }
+                    ],
+
+                    products: [
+                        { id: 'nitro-1', name: 'Discord Nitro القياسي', category: 'nitro', price: 35, oldPrice: 45, image: '/assets/images/products/nitro.png', description: 'اشتراك نيترو جيمنج لمدة شهر كامل ضمان كامل الفترة.' },
+                        { id: 'nitro-2', name: 'Discord Nitro سنة', category: 'nitro', price: 280, oldPrice: 350, image: '/assets/images/products/nitro-year.png', description: 'اشتراك نيترو جيمنج لمدة سنة كاملة مع البوستات.' },
+                        { id: 'boost-1', name: 'سيرفر بوست 14x', category: 'boost', price: 25, oldPrice: 40, image: '/assets/images/products/boost.png', description: 'ترقية سيرفر ديسكورد لفل 3 لمدة 3 أشهر.' },
+                        { id: 'net-1', name: 'حساب نتفلكس شاشة خاصة', category: 'netflix', price: 15, oldPrice: 25, image: '/assets/images/products/netflix.png', description: 'حساب نتفلكس أعلى دقة 4K ULTRA HD لمدة شهر.' },
+                        { id: 'source-1', name: 'سورس بوت حماية متكامل', category: 'sources', price: 120, oldPrice: 200, image: '/assets/images/products/source.png', description: 'سورس كود جاهز بالكامل لادارة السيرفرات والحماية.' }
+                    ],
+
+                    faqs: [
+                        { q: 'كيف يتم تسليم الطلب؟', a: 'التسليم يتم فورياً عبر الديسكورد بعد تأكيد العملية.', open: false },
+                        { q: 'ما هي طرق الدفع المتاحة؟', a: 'الدفع عبر التحويل البنكي أو المحافظ الإلكترونية بوساطة الـ QR Code.', open: false },
+                        { q: 'هل المنتجات مضمونة؟', a: 'نعم جميع منتجاتنا وخدماتنا مشمولة بضمان كامل طوال فترة الاشتراك.', open: false }
+                    ]
+                }
+            },
+
+            computed: {
+                cartCount() {
+                    return this.cart.reduce((sum, item) => sum + item.qty, 0);
+                },
+                cartTotal() {
+                    return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+                },
+                discountedProducts() {
+                    return this.products.filter(p => p.oldPrice > p.price);
+                },
+                filteredProducts() {
+                    return this.products.filter(p => {
+                        const matchesCategory = this.selectedCategory === 'all' || p.category === this.selectedCategory;
+                        const matchesSearch = p.name.includes(this.searchQuery) || p.description.includes(this.searchQuery);
+                        return matchesCategory && matchesSearch;
+                    });
+                }
+            },
+
+            methods: {
+                filterByCategory(catId) {
+                    this.selectedCategory = catId;
+                    this.currentTab = 'products';
+                },
+                getCategoryCount(catId) {
+                    return this.products.filter(p => p.category === catId).length;
+                },
+                calculateDiscount(price, oldPrice) {
+                    return Math.round(((oldPrice - price) / oldPrice) * 100);
+                },
+                addToCart(product) {
+                    const existing = this.cart.find(i => i.id === product.id);
+                    if (existing) {
+                        existing.qty++;
+                    } else {
+                        this.cart.push({ ...product, qty: 1 });
+                    }
+                    this.showCart = true;
+                },
+                updateQty(id, delta) {
+                    const item = this.cart.find(i => i.id === id);
+                    if (item) {
+                        item.qty += delta;
+                        if (item.qty <= 0) {
+                            this.cart = this.cart.filter(i => i.id !== id);
+                        }
+                    }
+                },
+                removeFromCart(id) {
+                    this.cart = this.cart.filter(i => i.id !== id);
+                },
+                scrollToSection(id) {
+                    this.currentTab = 'home';
+                    this.$nextTick(() => {
+                        const el = document.getElementById(id);
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    });
+                },
+                completeCheckout() {
+                    if (!this.orderForm.discordUser || !this.orderForm.paymentRef) {
+                        alert('يرجى ملء جميع الحقول المطلوبة (اسم الديسكورد ورقم المرجع)');
+                        return;
+                    }
+
+                    const orderId = 'LARO-' + Date.now().toString().slice(-6);
+                    alert(`تم استلام طلبك بنجاح! \nرقم الطلب: ${orderId}\nسنقوم بالتواصل معك عبر ديسكورد لتسليم الطلب.`);
+                    
+                    this.cart = [];
+                    this.showCart = false;
+                    this.orderForm.discordUser = '';
+                    this.orderForm.paymentRef = '';
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
